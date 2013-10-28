@@ -14,3 +14,9 @@ exp.Parallel 	= require('./lib/node/parallel');
 exp.Select 		= require('./lib/node/select');
 exp.Loop 		= require('./lib/node/loop');
 exp.If 			= require('./lib/node/if');
+
+exp.Not   = require('./lib/cond/not');
+exp.And   = require('./lib/cond/and');
+exp.Or    = require('./lib/cond/or');
+exp.True  = require('./lib/cond/true');
+exp.False = require('./lib/cond/false');

@@ -2,36 +2,33 @@ var should = require('should');
 var bt = require('../../');
 var Sequence = bt.Sequence;
 
-var SNode = function(bb) {
-  this.blackboard = bb;
+var SNode = function() {
 };
 SNode.prototype = {
-  doAction: function() {
-    this.blackboard.scount++;
+  doAction: function(bb) {
+    bb.scount++;
     return bt.RES_SUCCESS;
   }
 };
 
-var FNode = function(bb) {
-  this.blackboard = bb;
+var FNode = function() {
 };
 FNode.prototype = {
-  doAction: function() {
-    this.blackboard.fcount++;
+  doAction: function(bb) {
+    bb.fcount++;
     return bt.RES_FAIL;
   }
 };
 
-var WNode = function(bb) {
-  this.blackboard = bb;
+var WNode = function() {
 };
 WNode.prototype = {
-  doAction: function() {
-    if(this.blackboard.wcount < 2) {
-      this.blackboard.wcount++;
+  doAction: function(bb) {
+    if(bb.wcount < 2) {
+      bb.wcount++;
       return bt.RES_WAIT;
     } else {
-      this.blackboard.scount++;
+      bb.scount++;
       return bt.RES_SUCCESS;
     }
   }
@@ -44,18 +41,18 @@ describe('Sequence Test', function() {
       fcount: 0, 
       wcount: 0
     };
-    var sq = new Sequence({blackboard: bb});
-    sq.addChild(new SNode(bb));
-    sq.addChild(new SNode(bb));
-    sq.addChild(new SNode(bb));
+    var sq = new Sequence({});
+    sq.addChild(new SNode());
+    sq.addChild(new SNode());
+    sq.addChild(new SNode());
 
-    var res = sq.doAction();
+    var res = sq.doAction(bb);
     res.should.equal(bt.RES_SUCCESS);
     bb.scount.should.equal(3);
     bb.fcount.should.equal(0);
     bb.wcount.should.equal(0);
 
-    res = sq.doAction();
+    res = sq.doAction(bb);
     res.should.equal(bt.RES_SUCCESS);
     bb.scount.should.equal(6);
     bb.fcount.should.equal(0);
@@ -68,18 +65,18 @@ describe('Sequence Test', function() {
       fcount: 0, 
       wcount: 0
     };
-    var sq = new Sequence({blackboard: bb});
-    sq.addChild(new SNode(bb));
-    sq.addChild(new FNode(bb));
-    sq.addChild(new SNode(bb));
+    var sq = new Sequence({});
+    sq.addChild(new SNode());
+    sq.addChild(new FNode());
+    sq.addChild(new SNode());
 
-    var res = sq.doAction();
+    var res = sq.doAction(bb);
     res.should.equal(bt.RES_FAIL);
     bb.scount.should.equal(1);
     bb.fcount.should.equal(1);
     bb.wcount.should.equal(0);
 
-    res = sq.doAction();
+    res = sq.doAction(bb);
     res.should.equal(bt.RES_FAIL);
     bb.scount.should.equal(2);
     bb.fcount.should.equal(2);
@@ -93,24 +90,24 @@ describe('Sequence Test', function() {
       fcount: 0, 
       wcount: 0
     };
-    var sq = new Sequence({blackboard: bb});
-    sq.addChild(new SNode(bb));
-    sq.addChild(new WNode(bb));
-    sq.addChild(new SNode(bb));
+    var sq = new Sequence({});
+    sq.addChild(new SNode());
+    sq.addChild(new WNode());
+    sq.addChild(new SNode());
 
-    var res = sq.doAction();
+    var res = sq.doAction(bb);
     res.should.equal(bt.RES_WAIT);
     bb.scount.should.equal(1);
     bb.fcount.should.equal(0);
     bb.wcount.should.equal(1);
 
-    res = sq.doAction();
+    res = sq.doAction(bb);
     res.should.equal(bt.RES_WAIT);
     bb.scount.should.equal(1);
     bb.fcount.should.equal(0);
     bb.wcount.should.equal(2);
 
-    res = sq.doAction();
+    res = sq.doAction(bb);
     res.should.equal(bt.RES_SUCCESS);
     bb.scount.should.equal(3);
     bb.fcount.should.equal(0);

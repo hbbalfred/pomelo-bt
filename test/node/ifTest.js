@@ -2,36 +2,33 @@ var should = require('should');
 var bt = require('../../');
 var If = bt.If;
 
-var SNode = function(bb) {
-  this.blackboard = bb;
+var SNode = function() {
 };
 SNode.prototype = {
-  doAction: function() {
-    this.blackboard.scount++;
+  doAction: function(bb) {
+    bb.scount++;
     return bt.RES_SUCCESS;
   }
 };
 
-var FNode = function(bb) {
-  this.blackboard = bb;
+var FNode = function() {
 };
 FNode.prototype = {
-  doAction: function() {
-    this.blackboard.fcount++;
+  doAction: function(bb) {
+    bb.fcount++;
     return bt.RES_FAIL;
   }
 };
 
-var WNode = function(bb) {
-  this.blackboard = bb;
+var WNode = function() {
 };
 WNode.prototype = {
-  doAction: function() {
-    if(this.blackboard.wcount < 2) {
-      this.blackboard.wcount++;
+  doAction: function(bb) {
+    if(bb.wcount < 2) {
+      bb.wcount++;
       return bt.RES_WAIT;
     } else {
-      this.blackboard.scount++;
+      bb.scount++;
       return bt.RES_SUCCESS;
     }
   }
@@ -45,13 +42,11 @@ describe('If Test', function() {
       wcount: 0
     };
 
-    var cond = function(bb) {
-      return true;
-    };
+    var cond = new bt.True();
 
-    var i = new If({blackboard: bb, action: new SNode(bb), cond: cond});
+    var i = new If({action: new SNode(), cond: cond});
 
-    var res = i.doAction();
+    var res = i.doAction(bb);
     res.should.equal(bt.RES_SUCCESS);
     bb.scount.should.equal(1);
     bb.fcount.should.equal(0);
@@ -65,13 +60,11 @@ describe('If Test', function() {
       wcount: 0
     };
 
-    var cond = function(bb) {
-      return false;
-    };
+    var cond = new bt.False();
 
-    var i = new If({blackboard: bb, action: new SNode(bb), cond: cond});
+    var i = new If({action: new SNode(), cond: cond});
 
-    var res = i.doAction();
+    var res = i.doAction(bb);
     res.should.equal(bt.RES_FAIL);
     bb.scount.should.equal(0);
     bb.fcount.should.equal(0);
@@ -85,13 +78,11 @@ describe('If Test', function() {
       wcount: 0
     };
 
-    var cond = function(bb) {
-      return true;
-    };
+    var cond = new bt.True();
 
-    var i = new If({blackboard: bb, action: new FNode(bb), cond: cond});
+    var i = new If({action: new FNode(), cond: cond});
 
-    var res = i.doAction();
+    var res = i.doAction(bb);
     res.should.equal(bt.RES_FAIL);
     bb.scount.should.equal(0);
     bb.fcount.should.equal(1);
@@ -105,33 +96,38 @@ describe('If Test', function() {
       wcount: 0
     };
 
-    var condCount = 0;
-    var cond = function(bb) {
-      condCount++;
+    var Cond = function() {
+      this.count = 0;
+    };
+    Cond.prototype.evaluate = function(bb)
+    {
+      this.count++;
       return true;
     };
 
-    var i = new If({blackboard: bb, action: new WNode(bb), cond: cond});
+    var cond = new Cond();
 
-    var res = i.doAction();
+    var i = new If({action: new WNode(), cond: cond});
+
+    var res = i.doAction(bb);
     res.should.equal(bt.RES_WAIT);
     bb.scount.should.equal(0);
     bb.fcount.should.equal(0);
     bb.wcount.should.equal(1);
-    condCount.should.equal(1);
+    cond.count.should.equal(1);
 
-    res = i.doAction();
+    res = i.doAction(bb);
     res.should.equal(bt.RES_WAIT);
     bb.scount.should.equal(0);
     bb.fcount.should.equal(0);
     bb.wcount.should.equal(2);
-    condCount.should.equal(1);
+    cond.count.should.equal(1);
 
-    res = i.doAction();
+    res = i.doAction(bb);
     res.should.equal(bt.RES_SUCCESS);
     bb.scount.should.equal(1);
     bb.fcount.should.equal(0);
     bb.wcount.should.equal(2);
-    condCount.should.equal(1);
+    cond.count.should.equal(1);
   });
 });

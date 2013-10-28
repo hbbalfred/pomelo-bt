@@ -2,37 +2,33 @@ var should = require('should');
 var bt = require('../../');
 var Loop = bt.Loop;
 
-var SNode = function(bb) {
-  this.blackboard = bb;
+var SNode = function() {
 };
-
 SNode.prototype = {
-  doAction: function() {
-    this.blackboard.scount++;
+  doAction: function(bb) {
+    bb.scount++;
     return bt.RES_SUCCESS;
   }
 };
 
-var FNode = function(bb) {
-  this.blackboard = bb;
+var FNode = function() {
 };
 FNode.prototype = {
-  doAction: function() {
-    this.blackboard.fcount++;
+  doAction: function(bb) {
+    bb.fcount++;
     return bt.RES_FAIL;
   }
 };
 
-var WNode = function(bb) {
-  this.blackboard = bb;
+var WNode = function() {
 };
 WNode.prototype = {
-  doAction: function() {
-    if(this.blackboard.wcount < 2) {
-      this.blackboard.wcount++;
+  doAction: function(bb) {
+    if(bb.wcount < 2) {
+      bb.wcount++;
       return bt.RES_WAIT;
     } else {
-      this.blackboard.scount++;
+      bb.scount++;
       return bt.RES_SUCCESS;
     }
   }
@@ -46,35 +42,40 @@ describe('Loop Test', function() {
       wcount: 0
     };
 
-    var loopConditionCount = 0;
-
-    var lc = function(bb) {
-      loopConditionCount++;
+    var LoopCondition = function ()
+    {
+      this.count = 0;
+    };
+    LoopCondition.prototype.evaluate = function(bb)
+    {
+      this.count++;
       return bb.scount <= 2;
     };
 
-    var loop = new Loop({blackboard: bb, child: new SNode(bb), loopCond: lc});
+    var lc = new LoopCondition();
 
-    var res = loop.doAction();
+    var loop = new Loop({action: new SNode(), cond: lc});
+
+    var res = loop.doAction(bb);
     res.should.equal(bt.RES_WAIT);
     bb.scount.should.equal(1);
     bb.fcount.should.equal(0);
     bb.wcount.should.equal(0);
-    loopConditionCount.should.equal(1);
+    lc.count.should.equal(1);
 
-    res = loop.doAction();
+    res = loop.doAction(bb);
     res.should.equal(bt.RES_WAIT);
     bb.scount.should.equal(2);
     bb.fcount.should.equal(0);
     bb.wcount.should.equal(0);
-    loopConditionCount.should.equal(2);
+    lc.count.should.equal(2);
 
-    res = loop.doAction();
+    res = loop.doAction(bb);
     res.should.equal(bt.RES_SUCCESS);
     bb.scount.should.equal(3);
     bb.fcount.should.equal(0);
     bb.wcount.should.equal(0);
-    loopConditionCount.should.equal(3);
+    lc.count.should.equal(3);
   });
 
   it('should return fail and break loop if child return fail', function() {
@@ -84,29 +85,34 @@ describe('Loop Test', function() {
       wcount: 0
     };
     
-    var loopConditionCount = 0;
-
-    var lc = function(bb) {
+    var LoopCondition = function ()
+    {
+      this.count = 0;
+    };
+    LoopCondition.prototype.evaluate = function(bb)
+    {
       //should never enter here
-      loopConditionCount++;
-      return  true;
+      this.count++;
+      return true;
     };
 
-    var loop = new Loop({blackboard: bb, child: new FNode(bb), loopCond: lc});
+    var lc = new LoopCondition();
 
-    var res = loop.doAction();
+    var loop = new Loop({action: new FNode(), cond: lc});
+
+    var res = loop.doAction(bb);
     res.should.equal(bt.RES_FAIL);
     bb.scount.should.equal(0);
     bb.fcount.should.equal(1);
     bb.wcount.should.equal(0);
-    loopConditionCount.should.equal(0);
+    lc.count.should.equal(0);
 
-    res = loop.doAction();
+    res = loop.doAction(bb);
     res.should.equal(bt.RES_FAIL);
     bb.scount.should.equal(0);
     bb.fcount.should.equal(2);
     bb.wcount.should.equal(0);
-    loopConditionCount.should.equal(0);
+    lc.count.should.equal(0);
   });
 
   it('should return wait when the child return wait', function() {
@@ -116,33 +122,38 @@ describe('Loop Test', function() {
       wcount: 0
     };
 
-    var loopConditionCount = 0;
-
-    var lc = function(bb) {
-      loopConditionCount++;
-      return  false;
+    var LoopCondition = function ()
+    {
+      this.count = 0;
+    };
+    LoopCondition.prototype.evaluate = function(bb)
+    {
+      this.count++;
+      return false;
     };
 
-    var loop = new Loop({blackboard: bb, child: new WNode(bb), loopCond: lc});
-    var res = loop.doAction();
+    var lc = new LoopCondition();
+
+    var loop = new Loop({action: new WNode(), cond: lc});
+    var res = loop.doAction(bb);
     res.should.equal(bt.RES_WAIT);
     bb.scount.should.equal(0);
     bb.fcount.should.equal(0);
     bb.wcount.should.equal(1);
-    loopConditionCount.should.equal(0);
+    lc.count.should.equal(0);
 
-    res = loop.doAction();
+    res = loop.doAction(bb);
     res.should.equal(bt.RES_WAIT);
     bb.scount.should.equal(0);
     bb.fcount.should.equal(0);
     bb.wcount.should.equal(2);
-    loopConditionCount.should.equal(0);
+    lc.count.should.equal(0);
 
-    res = loop.doAction();
+    res = loop.doAction(bb);
     res.should.equal(bt.RES_SUCCESS);
     bb.scount.should.equal(1);
     bb.fcount.should.equal(0);
     bb.wcount.should.equal(2);
-    loopConditionCount.should.equal(1);
+    lc.count.should.equal(1);
   });
 });

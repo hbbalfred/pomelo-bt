@@ -2,37 +2,33 @@ var should = require('should');
 var bt = require('../../');
 var Select = bt.Select;
 
-var SNode = function(bb) {
-  this.blackboard = bb;
+var SNode = function() {
 };
-
 SNode.prototype = {
-  doAction: function() {
-    this.blackboard.scount++;
+  doAction: function(bb) {
+    bb.scount++;
     return bt.RES_SUCCESS;
   }
 };
 
-var FNode = function(bb) {
-  this.blackboard = bb;
+var FNode = function() {
 };
 FNode.prototype = {
-  doAction: function() {
-    this.blackboard.fcount++;
+  doAction: function(bb) {
+    bb.fcount++;
     return bt.RES_FAIL;
   }
 };
 
-var WNode = function(bb) {
-  this.blackboard = bb;
+var WNode = function() {
 };
 WNode.prototype = {
-  doAction: function() {
-    if(this.blackboard.wcount < 2) {
-      this.blackboard.wcount++;
+  doAction: function(bb) {
+    if(bb.wcount < 2) {
+      bb.wcount++;
       return bt.RES_WAIT;
     } else {
-      this.blackboard.scount++;
+      bb.scount++;
       return bt.RES_SUCCESS;
     }
   }
@@ -45,18 +41,18 @@ describe('Select Test', function() {
       fcount: 0, 
       wcount: 0
     };
-    var sl = new Select({blackboard: bb});
-    sl.addChild(new SNode(bb));
-    sl.addChild(new SNode(bb));
-    sl.addChild(new SNode(bb));
+    var sl = new Select();
+    sl.addChild(new SNode());
+    sl.addChild(new SNode());
+    sl.addChild(new SNode());
 
-    var res = sl.doAction();
+    var res = sl.doAction(bb);
     res.should.equal(bt.RES_SUCCESS);
     bb.scount.should.equal(1);
     bb.fcount.should.equal(0);
     bb.wcount.should.equal(0);
 
-    res = sl.doAction();
+    res = sl.doAction(bb);
     res.should.equal(bt.RES_SUCCESS);
     bb.scount.should.equal(2);
     bb.fcount.should.equal(0);
@@ -69,18 +65,18 @@ describe('Select Test', function() {
       fcount: 0, 
       wcount: 0
     };
-    var sl = new Select({blackboard: bb});
-    sl.addChild(new FNode(bb));
-    sl.addChild(new FNode(bb));
-    sl.addChild(new FNode(bb));
+    var sl = new Select();
+    sl.addChild(new FNode());
+    sl.addChild(new FNode());
+    sl.addChild(new FNode());
 
-    var res = sl.doAction();
+    var res = sl.doAction(bb);
     res.should.equal(bt.RES_FAIL);
     bb.scount.should.equal(0);
     bb.fcount.should.equal(3);
     bb.wcount.should.equal(0);
 
-    res = sl.doAction();
+    res = sl.doAction(bb);
     res.should.equal(bt.RES_FAIL);
     bb.scount.should.equal(0);
     bb.fcount.should.equal(6);
@@ -93,18 +89,18 @@ describe('Select Test', function() {
       fcount: 0, 
       wcount: 0
     };
-    var sl = new Select({blackboard: bb});
-    sl.addChild(new FNode(bb));
-    sl.addChild(new SNode(bb));
-    sl.addChild(new FNode(bb));
+    var sl = new Select();
+    sl.addChild(new FNode());
+    sl.addChild(new SNode());
+    sl.addChild(new FNode());
 
-    var res = sl.doAction();
+    var res = sl.doAction(bb);
     res.should.equal(bt.RES_SUCCESS);
     bb.scount.should.equal(1);
     bb.fcount.should.equal(1);
     bb.wcount.should.equal(0);
 
-    res = sl.doAction();
+    res = sl.doAction(bb);
     res.should.equal(bt.RES_SUCCESS);
     bb.scount.should.equal(2);
     bb.fcount.should.equal(2);
@@ -117,24 +113,24 @@ describe('Select Test', function() {
       fcount: 0, 
       wcount: 0
     };
-    var sl = new Select({blackboard: bb});
-    sl.addChild(new FNode(bb));
-    sl.addChild(new WNode(bb));
-    sl.addChild(new SNode(bb));
+    var sl = new Select();
+    sl.addChild(new FNode());
+    sl.addChild(new WNode());
+    sl.addChild(new SNode());
 
-    var res = sl.doAction();
+    var res = sl.doAction(bb);
     res.should.equal(bt.RES_WAIT);
     bb.scount.should.equal(0);
     bb.fcount.should.equal(1);
     bb.wcount.should.equal(1);
 
-    res = sl.doAction();
+    res = sl.doAction(bb);
     res.should.equal(bt.RES_WAIT);
     bb.scount.should.equal(0);
     bb.fcount.should.equal(1);
     bb.wcount.should.equal(2);
 
-    res = sl.doAction();
+    res = sl.doAction(bb);
     res.should.equal(bt.RES_SUCCESS);
     bb.scount.should.equal(1);
     bb.fcount.should.equal(1);
